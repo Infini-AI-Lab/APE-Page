@@ -48,12 +48,6 @@
 
 
   <section class="hero">
-    <style>
-      .container {
-        max-width: 1200px; /* 默认是 960px，你可以增加 */
-        width: 90%; /* 让其相对于屏幕自适应 */
-      }
-    </style>
     <div class="hero-body">
       <div class="container is-max-desktop">
         <div class="columns is-centered">
@@ -61,7 +55,7 @@
             <h1 class="title is-1 publication-title" style="display: block; width: 100%;">
               <img src="static/images/logo2.png" alt="APE Logo" style="height: 45px; vertical-align: middle; margin-bottom: 10px;">
               APE: Faster and Longer Context-Augmented Generation via Adaptive Parallel Encoding
-            </h1>            
+            </h1>      
             <div class="is-size-5 publication-authors">
               <!-- Paper authors -->
               <span class="author-block">
@@ -101,13 +95,14 @@
                 </a>
               </span>
 
+              <!-- ArXiv abstract Link -->
               <span class="link-block">
-                <a href="index_2.html" target="_blank"
+                <a href="index.html" target="_blank"
                   class="external-link button is-normal is-rounded is-dark">
                   <span class="icon">
                     <i class="fas fa-file"></i>
                   </span>
-                  <span>Part2</span>
+                  <span>Part1</span>
                 </a>
               </span>
               
@@ -133,26 +128,20 @@
 
   <!-- Paper abstract -->
   <section class="section hero is-light">
+    <style>
+      .container {
+        max-width: 1200px; /* 默认是 960px，你可以增加 */
+        width: 90%; /* 让其相对于屏幕自适应 */
+      }
+    </style>
     <div class="container is-max-desktop">
       <div class="columns is-centered has-text-centered">
         <div class="column is-four-fifths">
           <h2 class="title is-3">Introduction</h2>
           <div class="content has-text-justified" style="font-size: 16px;">
             <p>
-              Context-augmented generation (<b>CAG</b>) techniques, including RAG and ICL, 
-              require the efficient combination of multiple contexts to generate responses to user queries. 
-              Directly inputting these contexts sequentially <b>introduce considerable computational cost by 
-              re-encoding the combined selection of contexts for every request</b>. To address this, we explore 
-              the promising potential of parallel encoding to pre-compute and cache the KV states of each 
-              context independently. This approach enables direct loading of cached states during inference, 
-              while also accommodating more contexts through position reuse across contexts. However, due to 
-              misalignments in attention distribution, directly applying parallel encoding results in a 
-              significant performance drop. To enable effective and efficient CAG, we propose <u>A</u>daptive <u>P</u>arallel <u>E</u>ncoding (<b>APE</b>), 
-              which brings shared prefix, attention temperature, and scaling factor to align the distribution of parallel encoding with sequential encoding. 
-              Results on RAG and ICL tasks demonstrate that APE can preserve <b>98%</b> and <b>93%</b> sequential encoding performance using the same inputs, 
-              while outperforming parallel encoding by <b>3.6%</b> and <b>7.9%</b>, respectively. It also scales to many-shot CAG settings, effectively encoding hundreds 
-              of contexts in parallel. Efficiency evaluation shows that APE achieves an end-to-end <b>4.5&times</b> speedup by reducing <b>28&times</b> prefilling time for a 128K-length context. For the detailed techniques of APE, please refer to <a href="index_2.html" target="_blank" style="color: red;">Part 2</a>.
-
+              In Part 2, we will detail our key observations, which further motivated our design of APE. First, we highlight the limitations of trainable approaches in generalizing to complex reasoning tasks. Second, we explore
+              the alignments and misalignments between parallel encoding and sequential encoding. Based on these key observations, we introduce APE to strengthen these alignments via three steps during inference time, enabling fast, accurate, and generalizable CAG systems in practice.
             </p>
           </div>
         </div>
@@ -161,209 +150,182 @@
   </section>
   <!-- End paper abstract -->
 
-  <!-- Why -->
-  <section class="section hero is-light">
-    <div class="container is-max-desktop">
-      <div class="columns is-centered has-text-centered">
-        <div class="column is-four-fifths">
-          <h2 class="title is-3">Context-Augmented Generation and APE</h2>
-          <div class="content has-text-justified" style="font-size: 16px;">
-            <p>
-              CAG leverages additional contexts to improve the quality of LLM responses to queries. 
-              Sequential encoding prefills selected context chunks as a long sequence during inference, 
-              suffering from high latency due to on-the-fly re-encoding and low accuracy due to chunk size and count limits.
-              Parallel encoding offers an alternative method to pre-cache more and longer contexts and share same positions across them but leads to worse performance.
-    We propose Adaptive Parallel Encoding to re-align the attention weight distribution of parallel encoding with sequential encoding via three steps: shared prefix, scaling factor, and adaptive temperature.
-    APE can accommodate more and longer contexts without re-encoding and fine-tuning, leading to fast and accurate CAG systems in practice.
-            </p>
+      <!-- Why -->
+      <section class="section hero is-light">
+        <div class="container is-max-desktop">
+          <div class="columns is-centered has-text-centered">
+            <div class="column is-four-fifths">
+              <h2 class="title is-3">Observation 1: Trainable approaches are not generalizable.</h2>
+              <div class="content has-text-justified" style="font-size: 16px;">
+              </div>
+                <div class="figure">
+                  <img src="static/images/obs1.png" alt="Generalization"/>
+                </div>
+              <div class="content has-text-justified" style="font-size: 16px;">
+                <p>
+                  With results on RAG and ICL tasks, we find both parallel encoding and its fine-tuned variant CEPED cannot generalize to math reasoning. Thus, fine-tuning models to improve parallel encoding on complex tasks
+                  requires (i) more diverse and labeled data, and (ii) resource-intensive instruction-tuning, offering an unfavorable trade-off between training costs and model
+                  capabilities.
+                </p>
+              </div>
+            </div>
           </div>
-          <div class="content has-text-justified" style="font-size: 16px;">
-              <video width="1200" height="800" controls>
-                <source src="static/videos/demo.mp4" type="video/mp4">
-              </video>
+      </section>
+      <!-- End Why -->
 
+     <!-- Why -->
+     <section class="section hero is-light">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered has-text-centered">
+          <div class="column is-four-fifths">
+            <h2 class="title is-3">Observation 2: Alignments and Misalignments in the KV States.</h2>
+            <p class="has-text-left is-size-4">
+              <strong>KV states from different contexts are similar in direction.</strong>
+            </p>
+            <div class="content has-text-justified" style="font-size: 16px;">
+              <div class="figure">
+                <img src="static/images/obs2.png" alt="Generalization"/>
+              </div>
+            </div>
+            <div class="content has-text-justified" style="font-size: 16px;">
+              <p>
+                The initial KV states show consistent directions across examples, with subsequent states forming similar, larger angles relative to them. This suggests that KV state directions remain consistent across contexts, primarily shaped by the initial KV states.
+              </p>
+            </div>
+            <p class="has-text-left is-size-4">
+              <strong>KV states from different contexts are similar in magnitude.</strong>
+            </p>
+            <div class="content has-text-justified" style="font-size: 16px;">
+              <div class="figure">
+                <img src="static/images/obs3.png" alt="Generalization"/>
+              </div>
+            </div>
+            <div class="content has-text-justified" style="font-size: 16px;">
+              <p>
+                In most positions, the magnitude of key states increases very slowly, while the magnitude of value states remains consistent.
+              </p>
+            </div>
+            <p class="has-text-left is-size-4">
+              <strong>KV states from the initial and recent positions are not similar to others.</strong>
+            </p>
+            <div class="content has-text-justified" style="font-size: 16px;">
+              <p>
+                In the figures above, we observe a discrepancy in direction and magnitude for the initial and recent positions, leading to
+                large attention scores at these positions. This is due to the presence of an attention sink and the influence of position embeddings.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-  </section>
-  <!-- End Why -->
+    </section>
+    <!-- End Why -->
 
-  <!-- Solutions -->
+  <!-- Discussion -->
   <section class="section hero is-light">
+    <style>
+        .pseudocode {
+            font-family: "Courier New", monospace; /* 代码使用等宽字体 */
+            font-size: 14px;
+            background-color: #f4f4f4; /* 浅灰色背景 */
+            padding: 0px;
+            border-radius: 5px;
+            white-space: pre-wrap; /* 确保换行 */
+            text-align: left; /* 确保文本左对齐 */
+            display: block;
+            margin: 0;
+        }
+    </style>
     <div class="container is-max-desktop">
       <div class="columns is-centered has-text-centered">
         <div class="column is-four-fifths">
-          <h2 class="title is-3">How APE Accelerates Inference?</h2>
-          <div class="content has-text-justified" style="border-bottom: none; font-size: 16px;">
-            <style>
-              .table-container {
-                width: 100%;
-                max-width: 800px;
-                overflow-x: auto; /* Adds horizontal scroll if needed */
-              }
-
-              table {
-                width: 100%;
-                max-width: 800px;
-                border-collapse: collapse;
-                text-align: center;
-                margin-top: 20px;
-                border: none;
-                table-layout: fixed;
-                /* Ensures no outer border */
-              }
-    
-              th {
-                padding: 10px;
-                position: relative;
-                border: none;
-              }
-    
-              /* Override any potential border between rows */
-              tr {
-                border-top: none;
-                border-bottom: none;
-              }
-    
-              /* Target specific rows */
-              tr:first-child th,
-              tr:nth-child(2) th {
-                border-top: none;
-                border-bottom: none;
-              }
-    
-              .line-container {
-                display: flex;
-                flex-direction: column;
-                gap: 5px;
-                /* Space between lines */
-                margin-top: 10px;
-              }
-    
-              .line {
-                width: 100%;
-                height: 1px;
-                background-color: #000;
-                /* Black lines */
-              }
-            </style>
-            <p class="has-text-left is-size-4">
-              <strong>APE reduces the prefilling time to nearly zero.</strong>
+          <h2 class="title is-3">Adaptive Parallel Encoding (APE)</h2>
+          <div class="content has-text-justified">
+            <p>
+              With all the lessons, we design our APE to address these misalignments, recovering the accuracy of parallel encoding with three steps.
             </p>
-            <div class="figure">
-              <img src="static/images/latency.png" alt="APE"/>
+          </div>
+          <p class="has-text-left is-size-4">
+            <strong>Prepending Shared Prefix.</strong>
+          </p>
+          <div class="content has-text-justified">
+            <p>
+              To avoid duplicating abnormal KV states for the few few positions, we prepend a shared prefix to all
+              contexts to ensure that these KV states appear only once in each generation step. In practice, we use either system prompts and instructions, or newline characters as our prefix. 
+            </p>
+          </div>
+          <p class="has-text-left is-size-4">
+            <strong>Adjusting Attention Temperature.</strong>
+          </p>
+          <div class="content has-text-justified">
+            <div class="content has-text-justified" style="font-size: 16px;">
+              <div class="figure">
+                <img src="static/images/obs4.png" alt="Generalization"/>
+              </div>
             </div>
             <p>
+              Duplicating neighboring KV states in parallel encoding disperse the query's attention to multiple contexts, leading to a uniform distribution. We
+adjust the attention temperature to a value less than 1 to refocus on the most relevant tokens, sharpening the
+distribution after Softmax. 
             </p>
-            <p class="has-text-left is-size-4">
-              <strong>APE increases the cache hit rate among requests.</strong>
-            </p>
-            <div class="figure">
-              <img src="static/images/APE_cache.png" alt="APE_Cache"/>
-            </div>
           </div>
+          <p class="has-text-left is-size-4">
+            <strong>Adding Scaling Factor.</strong>
+          </p>
+          <div class="content has-text-justified">
+            <p>
+              While adjusting the temperature sharpens the distribution among context tokens, it will also increase
+              the absolute value of LogSumExp(QK) among them. To compensate for these changes,
+              we finally introduce a scaling factor less than 1 to reduce this absolute value.
+            </p>
+          </div>
+          <p class="has-text-left is-size-4">
+            <strong>Formulation.</strong>
+          </p>        
+          <div class="content has-text-justified">
+            <p>
+              After incorporating the proposed changes, the formula for our APE attention calculation becomes:
+            </p>
+            <div class="content has-text-justified" style="font-size: 16px;">
+              <div class="figure">
+                <img src="static/images/formula.png" alt="Generalization"/>
+              </div>
+            </div>
+            <p>
+              Here, A<sub>P</sub>, A'<sub>C</sub>, A represents the attention weights for prefix, context, and query/generation tokens, respectively. Similarly, V<sub>P</sub>, V<sub>C</sub>, V denote the corresponding value states. The attention temperature T
+and the scaling factor S for the context are less than 1.
+            </p>
+          </div>
+          <p class="has-text-left is-size-4">
+            <strong>Pseudocode.</strong>
+            <div class="content has-text-justified">
+              <p>
+                APE can be efficiently implemented by employing flash attention twice for the computation for context and non-context tokens seperately, and then merge these two parts into the final results. This only introduces a marginal computational overhead, as the pseudo codeshown below. 
+              </p>
+            </div>
+            <pre class="pseudocode">
+  def ape_attention(query, key, value, temperature, scale):
+      # split key and value states into context and non-context parts
+      key_context, key_other = key
+      value_context, value_other = value
+      attn_output_context, lse_context = flash_attn(query, key, value, temperature=temperature)
+      attn_output_other, lse_other = flash_attn(query, key, value)
+      lse_context = lse_context * scale
+      attn_weights = [lse_context, lse_other]
+      attn_weights = Softmax(attn_weights)
+      value_states = [attn_output_context, attn_output_other]
+      attn_output = attn_weights @ value_states
+              </pre>
+          </p>
         </div>
       </div>
     </div>
   </section>
-  <!-- End Solutions -->
-
-  <!-- Solutions -->
-  <section class="section hero is-light">
-    <div class="container is-max-desktop">
-      <div class="columns is-centered has-text-centered">
-        <div class="column is-four-fifths">
-          <h2 class="title is-3">How APE Maintains Performance?</h2>
-          <div class="content has-text-justified" style="border-bottom: none; font-size: 16px;">
-            <style>
-              .table-container {
-                width: 100%;
-                max-width: 800px;
-                overflow-x: auto; /* Adds horizontal scroll if needed */
-              }
-
-              table {
-                width: 100%;
-                max-width: 800px;
-                border-collapse: collapse;
-                text-align: center;
-                margin-top: 20px;
-                border: none;
-                table-layout: fixed;
-                /* Ensures no outer border */
-              }
-    
-              th {
-                padding: 10px;
-                position: relative;
-                border: none;
-              }
-    
-              /* Override any potential border between rows */
-              tr {
-                border-top: none;
-                border-bottom: none;
-              }
-    
-              /* Target specific rows */
-              tr:first-child th,
-              tr:nth-child(2) th {
-                border-top: none;
-                border-bottom: none;
-              }
-    
-              .line-container {
-                display: flex;
-                flex-direction: column;
-                gap: 5px;
-                /* Space between lines */
-                margin-top: 10px;
-              }
-    
-              .line {
-                width: 100%;
-                height: 1px;
-                background-color: #000;
-                /* Black lines */
-              }
-            </style>
-            <p class="has-text-left is-size-4" style="margin-top: 20px;">
-              <strong>APE maintains 98% accuracy on ChatRAG-Bench.</strong>
-            </p>
-            <div class="figure">
-              <img src="static/images/chatrag.png" alt="APE"/>
-            </div>
-            <p class="has-text-left is-size-4" style="margin-top: 20px;">
-              <strong>APE improves RAG performance on LongBench with more contexts.</strong>
-            </p>
-            <div class="figure">
-              <img src="static/images/longbench.png" alt="APE"/>
-            </div>
-            <p class="has-text-left is-size-4" style="margin-top: 20px;">
-              <strong>APE keeps 93% accuracy on ICL tasks requiring advanced abilities.</strong>
-            </p>
-            <div class="figure">
-              <img src="static/images/icl.png" alt="APE"/>
-            </div>
-            <p class="has-text-left is-size-4" style="margin-top: 20px;">
-              <strong>APE handles hundreds of contexts in parallel without degradation.</strong>
-            </p>
-            <div class="figure">
-              <img src="static/images/manyshot.png" alt="APE"/>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-  <!-- End Solutions -->
-
+  <!-- Disucssion -->
 
   <!-- Discussion -->
   <section class="section hero is-light">
     <div class="container is-max-desktop">
       <div class="columns is-centered has-text-centered">
-        <div class="column is-four-fifths" style="margin-top: 0px;">
+        <div class="column is-four-fifths">
           <h2 class="title is-3">Conclusion and Future Work</h2>
           <div class="content has-text-justified">
             <p>
